@@ -99,6 +99,9 @@ You should receive an email within a few minutes.
    ```bash
    crontab -e
    ```
+> TIP
+>
+> Use the `pwd` command on linux systems to get the absolute path to the current directory
 
 3. **Add this line for daily emails at 5 AM:**
    ```cron
