@@ -139,11 +139,11 @@ No credentials are stored in the codebase, everything is set by the user in the 
 |--------|------------------
 |✅| Wikipedia content scraping | Daily trending articles and "On This Day"
 |✅| Email automation | Automated sending via cron/Task Scheduler
-|X| Better email formatting with html and css
+|✅| Better email formatting with html and css
 |X| Add support for windows users with Task Scheduler and documentation
-|X| Multiple news sources
-|X| Customizable content, let users choose what sections to include
-|X| OAuth email authentication rather than app passwords
+|X| Multiple news sources and daily xkcd comic
+|X| Customizable content, let users choose what to include, ordering, and css styling
+|X| Optional OAuth email authentication rather than app passwords
 
 ## Contributing
 This is a hobby project, but feel free to:
@@ -157,7 +157,6 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 ## Future Ideas
 _These are more or less ranked by how interested I am in completing them but more ideas never hurt_
 
-- scrape other free news sources
 - Word clouds from trending articles and news sources
     - Could go very in depth with nlp analysis
 - Daily writing prompts
