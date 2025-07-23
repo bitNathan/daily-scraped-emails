@@ -23,13 +23,14 @@ def log_into_email(email_addr:str, password:str):
 
 def bleach_html(html):
     allowed_tags = ['p','span','a','img','strong','em','table',
-        'tr','td','tbody','thead','th', 'h1','h2']
+        'tr','td','tbody','thead','th', 'h1','h2','h3','div','br','small']
     allowed_attrs = {
         '*': ['style'],
         'a': ['href', 'title'],
         'img': ['src','alt','width','height'],
+        'div': ['style'],
     }
-    css_sanitizer = CSSSanitizer(allowed_css_properties=["color", "font-weight"])
+    css_sanitizer = CSSSanitizer(allowed_css_properties=["color", "font-weight", "margin-left", "margin-top", "margin-bottom", "text-align", "font-style", "font-size"])
     cleaned= clean(html,
         tags=allowed_tags,
         attributes=allowed_attrs,
@@ -38,40 +39,162 @@ def bleach_html(html):
     
     return cleaned
 
+def get_on_this_day_data(data):
+    # gets 5 at most events
+    # TODO replace "3" with env const global (and other occourances)
+    on_this_day_html = ""
+    for i in range(min(3, len(data['onthisday']))):
+        event_year = str(data['onthisday'][i]['year']).zfill(4)
+        
+        # Main event description
+        event_text = bleach_html(data['onthisday'][i]['text'])
+        
+        # get links and display title for supporting articles
+        related_articles = data['onthisday'][i]['pages']
+        articles_html = ""
+        for article in related_articles:
+            article_title = bleach_html(article['titles']['display'])
+            article_url = article['content_urls']['desktop']['page']
+            article_extract = bleach_html(article['extract_html'])
+            
+            articles_html += f"""
+                <div style="margin-left: 20px; margin-top: 10px;">
+                    <strong><a href="{article_url}">{article_title}</a></strong><br>
+                    {article_extract}
+                </div>
+            """
+
+        # Format each event with proper structure
+        on_this_day_html += f"""
+            <div style="margin-bottom: 20px;">
+                <strong>{event_year}:</strong> {event_text}
+                {articles_html}
+            </div>
+        """
+
+    return on_this_day_html
+
+def get_tfa_data(data):
+    title = bleach_html(data['tfa']['titles']['display'])
+    url = data['tfa']['content_urls']['desktop']['page']
+    extract = bleach_html(data['tfa']['extract_html'])
+    
+    tfa_html = f"""
+        <div>
+            <strong><a href="{url}">{title}</a></strong><br>
+            {extract}
+        </div>
+    """
+    return tfa_html
+
+def get_mostread_data(data):
+    # sort articles by rank to ensure proper ordering
+    articles = sorted(
+        data['mostread']['articles'],
+        key=lambda x: x.get('rank', float('inf'))
+    )
+    
+    mostread_html = ""
+    for i, article in enumerate(articles[:3]):
+        title = bleach_html(article['titles']['display'])
+        url = article['content_urls']['desktop']['page']
+        extract = bleach_html(article['extract_html'])
+        
+        mostread_html += f"""
+            <div style="margin-bottom: 15px;">
+                <strong>{i + 1}. <a href="{url}">{title}</a></strong><br>
+                {extract}
+            </div>
+        """
+    
+    return mostread_html
+
+def get_image_data(data):
+    thumbnail_url = data['image']['thumbnail']['source']
+    description_html = data['image']['description']['html']
+    artist_name = data['image']['artist']['text']
+    attribution_url = data['image']['file_page']
+    license_name = data['image']['license']['type']
+    license_url = data['image']['license']['url']
+    
+    # Format the image with alt text and description (no alt text because description included regardless)
+    # TODO image style data style="max-width:100%;height:auto;margin-bottom:10px;
+    image_html = f'''
+        <div>
+            <img src="{thumbnail_url}"><br><br>
+            <div style="font-style: italic; margin-bottom: 10px;">{bleach_html(description_html)}</div>
+        </div>
+    '''
+
+    # Format the credit info
+    credit_html = f'''
+        <div style="font-size: smaller; color: #666;">
+            Image by {bleach_html(artist_name)} 
+            (<a href="{attribution_url}">source</a>), 
+            licensed under <a href="{license_url}">{license_name}</a>
+        </div>
+    '''
+
+    return image_html, credit_html
+
 def build_msg(data):
-    # TODO make look... not like this
     date = datetime.datetime.now()
     year_date = date.strftime("%Y-%j")
 
-    # TODO dates seem to come before or after text?
-    # gets 5 at most days
-    on_this_day_data = ""
-    for i in range(min(5, len(data['onthisday']))):
-        event_year = str(data['onthisday'][i]['year']).zfill(4)
-        event_date = datetime.datetime.strptime(event_year, "%Y").strftime("%Y")
-        
-        # use br.join to seperate each entry with a newline (but in html)
-        on_this_day_data += "<br>" + "<br>".join({
-            event_date,
-            bleach_html(data['onthisday'][i]['text'])
-            # TODO get links for each article included as a result
-        })
+    # extract/format data from "data"
+    image_data, image_credit_data = get_image_data(data)
+    tfa_data = get_tfa_data(data)
+    on_this_day_data = get_on_this_day_data(data)
+    most_read_data = get_mostread_data(data)
+     # TODO read from env css file and apply to here
+    # Build email
+    html_content = f"""
+    <html>
+        <head>
+            <style>
+                body {{ font-family: Arial, sans-serif; line-height: 1.6; margin: 20px; }}
+                h1 {{ color: #0645ad; border-bottom: 2px solid #0645ad; }}
+                h2 {{ color: #0645ad; margin-top: 30px; }}
+                a {{ color: #0645ad; text-decoration: none; }}
+                a:hover {{ text-decoration: underline; }}
+                .section {{ margin-bottom: 30px; }}
+                .image-section {{ text-align: center; margin-bottom: 30px; }}
+            </style>
+        </head>
+        <body>
+            <h1>Daily Wikipedia Digest - {year_date}</h1>
+            
+            <h2>Picture of the Day</h2>
+            <div class="image-section section">
+                {image_data}
+                {image_credit_data}
+            </div>
+            
+            <div class="section">
+                <h2>Featured Article</h2>
+                {tfa_data}
+            </div>
 
-    # TODO order halfway backwards? maybe MIME handles odd later down function
-    tfa_data = "<br>".join({
-        bleach_html(data['tfa']['titles']['display']),
-        bleach_html(data['tfa']['content_urls']['desktop']['page']),
-        bleach_html(data['tfa']['extract_html'])
-    })
+            <div class="section">
+                <h2>On This Day</h2>
+                {on_this_day_data}
+            </div>
 
-    msg = MIMEMultipart()
-    msg['Subject'] = "Auto Wikipedia Bot " + year_date
+            <div class="section">
+                <h2>Most Read Articles</h2>
+                {most_read_data}
+            </div>
+        </body>
+    </html>
+    """
+
+    # build message as a single HTML email
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = "Daily Wikipedia Digest " + year_date
     
-    msg.attach(MIMEText("<h2>Featured Article</h2>", "html"))
-    msg.attach(MIMEText(tfa_data, "html"))
-
-    msg.attach(MIMEText("<h2>On This Day</h2>", "html"))
-    msg.attach(MIMEText(on_this_day_data, "html"))
+    # Attach the HTML content
+    html_part = MIMEText(html_content, 'html')
+    msg.attach(html_part)
 
     return msg
 
@@ -82,10 +205,6 @@ def get_wiki_data():
 
     featured_url = base_url + 'featured/' + f"{year}/{month}/{day}"
     onthisday_url = base_url + 'onthisday/events/' + f"{month}/{day}"
-    # TODO news is stored under featured, seperate from tfa
-    # TODO mostread also under featured
-    # TODO work on daily image and article thumbnails too
-    # TODO according to wikipedias terms article text should always be accompanied by link... so do that
     
     headers = {
     'Authorization': 'Bearer ' + os.getenv("WIKI_ACCESS_TOKEN"),
