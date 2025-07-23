@@ -105,7 +105,7 @@ You should receive an email within a few minutes.
 
 3. **Add this line for daily emails at 5 AM:**
    ```cron
-   0 5 * * * /absolute/path/to/your/project/send.sh /absolute/path/to/your/project
+   0 5 * * * </absolute/path/to/your/project>/scripts/send.sh /absolute/path/to/your/project
    ```
 
    **Other timing examples:**
