@@ -140,10 +140,10 @@ No credentials are stored in the codebase, everything is set by the user in the 
 |✅| Wikipedia content scraping | Daily trending articles and "On This Day"
 |✅| Email automation | Automated sending via cron/Task Scheduler
 |✅| Better email formatting with html and css
-|X| Add support for windows users with Task Scheduler and documentation
-|X| Multiple news sources and daily xkcd comic
-|X| Customizable content, let users choose what to include, ordering, and css styling
-|X| Optional OAuth email authentication rather than app passwords
+| | Easy setup and automation (for windows, Mac, or Linux) through documentation and scripts
+| | Multiple news sources
+| | Customizable content, let users choose what to include, ordering, and css styling
+| | Optional OAuth email authentication rather than app passwords
 
 ## Contributing
 This is a hobby project, but feel free to:

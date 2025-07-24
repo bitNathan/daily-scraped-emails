@@ -7,6 +7,10 @@ import datetime
 from bleach import clean
 from bleach.css_sanitizer import CSSSanitizer
 from dotenv import load_dotenv
+import xkcd_scrape as xkcd
+
+# TODO break all this into seperate files and reorganize wikipedia data extraction
+# TODO add card formatting so different sources appear on different cards
 
 def log_into_email(email_addr:str, password:str):
     # TODO catch errors, actually impliment error handling everywhere, not just here
@@ -137,7 +141,7 @@ def get_image_data(data):
 
     return image_html, credit_html
 
-def build_msg(data):
+def build_msg(data, xkcd_data):
     date = datetime.datetime.now()
     year_date = date.strftime("%Y-%j")
 
@@ -146,7 +150,8 @@ def build_msg(data):
     tfa_data = get_tfa_data(data)
     on_this_day_data = get_on_this_day_data(data)
     most_read_data = get_mostread_data(data)
-     # TODO read from env css file and apply to here
+    xkcd_image, xkcd_title = xkcd.format_xkcd_data(xkcd_data)
+    # TODO read from env css file and apply to here
     # Build email
     html_content = f"""
     <html>
@@ -162,28 +167,36 @@ def build_msg(data):
             </style>
         </head>
         <body>
-            <h1>Daily Wikipedia Digest - {year_date}</h1>
+            <h1>Daily Digest - {year_date}</h1>
             
-            <h2>Picture of the Day</h2>
+            <h2>XKCD comic: {xkcd_title}</h2>
+            <div class="image-section section">
+                {xkcd_image}
+            </div>
+            
+            <h2>Wikipedia Data</h2>
+            <h3>Picture of the Day</h3>
             <div class="image-section section">
                 {image_data}
                 {image_credit_data}
             </div>
+
+            <div class="section">\
+                <h3>Most Read Articles</h3>
+                {most_read_data}
+            </div>
             
             <div class="section">
-                <h2>Featured Article</h2>
+                <h3>Featured Article</h3>
                 {tfa_data}
             </div>
 
             <div class="section">
-                <h2>On This Day</h2>
+                <h3>On This Day</h3>
                 {on_this_day_data}
             </div>
 
-            <div class="section">
-                <h2>Most Read Articles</h2>
-                {most_read_data}
-            </div>
+            
         </body>
     </html>
     """
@@ -223,7 +236,8 @@ if __name__ == "__main__":
     target_email = os.getenv("TARGET_ADDRESS")
 
     data = get_wiki_data()
-    msg = build_msg(data)
+    xkcd_data = xkcd.get_xkcd_data()
+    msg = build_msg(data, xkcd_data)
 
     server = log_into_email(from_email, password)
     server.sendmail(from_email, target_email, msg.as_string())

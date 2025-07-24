@@ -10,7 +10,7 @@ if [[ -z "$1" ]]; then
 fi
 
 PROJECT_DIR="$1"
-LOGFILE="$PROJECT_DIR/cron.log"
+LOGFILE="$PROJECT_DIR/cron.log" # TODO rename to generic
 
 # validate directory
 if [[ ! -d "$PROJECT_DIR" ]]; then

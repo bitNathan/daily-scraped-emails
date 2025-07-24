@@ -12,7 +12,7 @@ fi
 PROJECT_PATH="$1"
 ENV="$PROJECT_PATH/env"
 PYTHON_BIN="$ENV/bin/python"
-SCRIPT="$PROJECT_PATH/main.py"
+SCRIPT="$PROJECT_PATH/src/main.py"
 LOG="$PROJECT_PATH/cron.log"
 
 # Validate existence of essential files and directories
