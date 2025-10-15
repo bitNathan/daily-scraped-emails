@@ -140,6 +140,9 @@ No credentials are stored in the codebase, everything is set by the user in the 
 |✅| Wikipedia content scraping | Daily trending articles and "On This Day"
 |✅| Email automation | Automated sending via cron/Task Scheduler
 |✅| Better email formatting with html and css
+| | make code more rObUsT (more try catch blocks and better logging)
+| | seperate html from code. Use html templates and jinja instead of concatting strings
+| | use / mimic css grid with MJML, Maizzle, and / or Premailer for a better layout
 | | Easy setup and automation (for windows, Mac, or Linux) through documentation and scripts
 | | Multiple news sources
 | | Customizable content, let users choose what to include, ordering, and css styling

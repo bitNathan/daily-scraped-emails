@@ -242,3 +242,4 @@ if __name__ == "__main__":
     server = log_into_email(from_email, password)
     server.sendmail(from_email, target_email, msg.as_string())
     server.quit()
+
